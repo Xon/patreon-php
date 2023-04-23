@@ -1,7 +1,6 @@
 <?php
 namespace Patreon\Tests;
 
-use ParagonIE\HiddenString\HiddenString;
 use Patreon\API;
 use PHPUnit\Framework\TestCase;
 
@@ -16,10 +15,6 @@ class APITest extends TestCase
         $this->assertInstanceOf(
             API::class,
             new API('test')
-        );
-        $this->assertInstanceOf(
-            API::class,
-            new API(new HiddenString('test'))
         );
     }
 }

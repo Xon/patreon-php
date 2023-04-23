@@ -1,3 +1,9 @@
+# 0.8.0
+
+* Increased minimum PHP version to 8.0+
+* Use OS bundled certs, as distros which support php 8+ should have updated version
+* Use php 8.2+ `SensitiveParameter` instead of `HiddenString`
+
 # 0.6.0
 
 * [#2](https://github.com/soatok/patreon-php/pull/2): Add Redirect URI to Auth URL 

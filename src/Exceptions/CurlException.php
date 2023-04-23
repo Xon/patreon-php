@@ -1,7 +1,9 @@
 <?php
 namespace Patreon\Exceptions;
 
-class CurlException extends \Exception
+use Exception;
+
+class CurlException extends Exception
 {
 
 }

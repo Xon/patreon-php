@@ -1,7 +1,9 @@
 <?php
 namespace Patreon\Exceptions;
 
-class APIException extends \Exception
+use Exception;
+
+class APIException extends Exception
 {
 
 }

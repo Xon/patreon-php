@@ -2,26 +2,30 @@
 declare(strict_types=1);
 namespace Patreon;
 
+use Throwable;
+use TypeError;
+
 /**
  * Class AuthUrl
+ *
  * @package Patreon
  */
 class AuthUrl
 {
     /** @var string $baseUrl */
-    private $baseUrl = 'https://www.patreon.com/oauth2/authorize';
+    private string $baseUrl = 'https://www.patreon.com/oauth2/authorize';
 
     /** @var string $clientId */
-    protected $clientId;
+    protected string $clientId;
 
     /** @var string[] $scopes */
-    protected $scopes = [];
+    protected array $scopes = [];
 
     /** @var array<string, mixed> $state */
-    protected $state = [];
+    protected array $state = [];
 
     /** @var string $redirectUri */
-    protected $redirectUri;
+    protected string $redirectUri;
 
     /**
      * AuthUrl constructor.
@@ -46,7 +50,7 @@ class AuthUrl
     {
         try {
             return $this->buildUrl();
-        } catch (\Throwable $ex) {
+        } catch (Throwable) {
             return '';
         }
     }
@@ -73,36 +77,36 @@ class AuthUrl
     }
 
     /**
-     * @param string $key
+     * @param string          $key
      * @param string|string[] $value
      * @return AuthUrl
      */
-    public function with(string $key, $value): self
+    public function with(string $key, array|string $value): self
     {
         switch ($key) {
             case 'clientId':
                 if (!is_string($value)) {
-                    throw new \TypeError('Expected string');
+                    throw new TypeError('Expected string');
                 }
                 return $this->withClientId($value);
             case 'redirectUri':
                 if (!is_string($value)) {
-                    throw new \TypeError('Expected string');
+                    throw new TypeError('Expected string');
                 }
                 return $this->withRedirectUri($value);
             case 'addedScope':
                 if (!is_string($value)) {
-                    throw new \TypeError('Expected string');
+                    throw new TypeError('Expected string');
                 }
                 return $this->withAddedScope($value);
             case 'scopes':
                 if (!is_array($value)) {
-                    throw new \TypeError('Expected array');
+                    throw new TypeError('Expected array');
                 }
                 return $this->withScopes($value);
             case 'state':
                 if (!is_array($value)) {
-                    throw new \TypeError('Expected array');
+                    throw new TypeError('Expected array');
                 }
                 return $this->withState($value);
             default:

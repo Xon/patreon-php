@@ -2,9 +2,10 @@
 declare(strict_types=1);
 namespace Patreon;
 
-use ParagonIE\HiddenString\HiddenString;
+use CurlHandle;
 use Patreon\Exceptions\APIException;
 use Patreon\Exceptions\CurlException;
+use SodiumException;
 
 /**
  * Class API
@@ -14,24 +15,20 @@ class API
 {
     /**
      * Holds the access token
-     *
-     * @var HiddenString $access_token
      */
-    private $access_token;
+    private string $access_token;
 
     /**
      * Holds the api endpoint used
-     *
-     * @var string $api_endpoint
      */
-    public $api_endpoint;
+    public string $api_endpoint;
 
     /**
      * Fallback base URL for non-standard API paths
      *
      * @var string $other_endpoint
      */
-    public $other_endpoint;
+    public string $other_endpoint;
 
     /**
      * The cache for request results - an array that matches hash of the unique
@@ -39,29 +36,27 @@ class API
      *
      * @var array $request_cache
      */
-    public static $request_cache;
+    public static array $request_cache;
 
     // Sets the reqeuest method for cURL
     /** @var string $api_request_method */
-    public $api_request_method = 'GET';
+    public string $api_request_method = 'GET';
 
     // Holds POST for cURL for requests other than GET
     /** @var string|array|bool $curl_postfields */
-    public $curl_postfields = false;
+    public string|array|bool $curl_postfields = false;
 
     // Sets the format the return from the API is parsed and returned - array (assoc), object, or raw JSON
     /** @var string $api_return_format */
-    public $api_return_format;
+    public string $api_return_format;
 
     /**
      * API constructor.
-     * @param string|HiddenString $access_token
+     *
+     * @param string $access_token
      */
-    public function __construct($access_token)
+    public function __construct(string $access_token)
     {
-        if (!($access_token instanceof HiddenString)) {
-            $access_token = new HiddenString($access_token);
-        }
         // Set the access token
         $this->access_token = $access_token;
 
@@ -84,9 +79,9 @@ class API
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function current_user_campaigns(array $args = [])
+    public function current_user_campaigns(array $args = []): object|array|string
     {
         return $this->get_data('current_user/campaigns', $args, true);
     }
@@ -97,9 +92,9 @@ class API
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function fetch_user()
+    public function fetch_user(): object|array|string
     {
         return $this->get_data('identity', [
             'include' => 'memberships',
@@ -129,26 +124,25 @@ class API
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function fetch_campaigns()
+    public function fetch_campaigns(): object|array|string
     {
         return $this->get_data("campaigns");
     }
 
     /**
      * Fetches details about a campaign - the membership tiers, benefits, creator and goals.
-     *
      * Requires the current user to be creator of the campaign or requires a creator access
      * token.
      *
-     * @param string|int $campaign_id
+     * @param int|string $campaign_id
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function fetch_campaign_details($campaign_id)
+    public function fetch_campaign_details(int|string $campaign_id): object|array|string
     {
         return $this->get_data('campaigns/' . $campaign_id, [
             'include' => implode(',', [
@@ -164,17 +158,16 @@ class API
      * Fetches details about a member from a campaign. Member id can be acquired from
      * fetch_page_of_members_from_campaign currently_entitled_tiers is the best way to get
      * info on which membership tiers the user is entitled to.
-     *
      * Requires the current user to be creator of the campaign or requires a creator access
      * token.
      *
-     * @param string|int $member_id
+     * @param int|string $member_id
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function fetch_member_details($member_id)
+    public function fetch_member_details(int|string $member_id): object|array|string
     {
         return $this->get_data('members/' . $member_id, [
             'include' => implode(',', [
@@ -190,19 +183,18 @@ class API
      * Fetches a given page of members with page size and cursor point.
      * Can be used to iterate through lists of members for a given campaign.
      * Campaign id can be acquired from fetch_campaigns or from a saved campaign id variable.
-     *
      * Requires the current user to be creator of the campaign or requires a creator access
      * token.
      *
-     * @param string|int $campaign_id
-     * @param string|int $page_size
-     * @param string|int|null $cursor
+     * @param int|string      $campaign_id
+     * @param int|string      $page_size
+     * @param int|string|null $cursor
      * @return array|object|string
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function fetch_page_of_members_from_campaign($campaign_id, $page_size, $cursor = null)
+    public function fetch_page_of_members_from_campaign(int|string $campaign_id, int|string $page_size, int|string $cursor = null): object|array|string
     {
         $args = [
             'page' => [
@@ -222,9 +214,9 @@ class API
      * @return string|array|object
      * @throws APIException
      * @throws CurlException
-     * @throws \SodiumException
+     * @throws SodiumException
      */
-    public function get_data(string $suffix, array $params = [], bool $nonStandard = false)
+    public function get_data(string $suffix, array $params = [], bool $nonStandard = false): object|array|string
     {
         // Construct request:
         if ($nonStandard) {
@@ -270,33 +262,30 @@ class API
 
         // Parse the return according to the format set by api_return_format variable
         // Then add this new request to the request cache and return it
-        switch ($this->api_return_format) {
-            case 'array':
-                return self::add_to_request_cache(
-                    $api_request_hash,
-                    json_decode($json_string, true)
-                );
-            case 'object':
-                return self::add_to_request_cache(
-                    $api_request_hash,
-                    json_decode($json_string)
-                );
-            case 'json':
-                return self::add_to_request_cache(
-                    $api_request_hash,
-                    $json_string
-                );
-            default:
-                throw new APIException('Unknown return format:' . $this->api_return_format);
-        }
+        return match ($this->api_return_format)
+        {
+            'array' => self::add_to_request_cache(
+                $api_request_hash,
+                json_decode($json_string, true)
+            ),
+            'object' => self::add_to_request_cache(
+                $api_request_hash,
+                json_decode($json_string)
+            ),
+            'json' => self::add_to_request_cache(
+                $api_request_hash,
+                $json_string
+            ),
+            default => throw new APIException('Unknown return format:' . $this->api_return_format),
+        };
     }
 
     /**
      * @param string $api_request
-     * @return resource
+     * @return CurlHandle
      * @throws CurlException
      */
-    private function __create_ch($api_request)
+    private function __create_ch(string $api_request): CurlHandle
     {
         // This function creates a cURL handler for a given URL.
         // In our case, this includes entire API request, with endpoint and parameters
@@ -338,11 +327,11 @@ class API
      * (GET, with url, endpoint and options and all) and then add it to the
      * request cache array.
      *
-     * @param string $api_request_hash
-     * @param string|array|object $result
+     * @param string              $api_request_hash
+     * @param object|array|string $result
      * @return string|array|object
      */
-    public static function add_to_request_cache($api_request_hash, $result)
+    public static function add_to_request_cache(string $api_request_hash, object|array|string $result): object|array|string
     {
         // If the cache array is larger than 50, snip the first item.
         // This may be increased in future
